@@ -12,6 +12,8 @@ All architectures are compatible with both TensorFlow and Theano, and upon insta
 
 Weights can be automatically loaded upon instantiation (`weights='imagenet'` argument in model constructor). Weights are automatically downloaded if necessary, and cached locally in `~/.keras/models/`.
 
+**Note that using these models requires the latest version of Keras (from the Github repo, not PyPI).**
+
 ## Examples
 
 ### Classify images
