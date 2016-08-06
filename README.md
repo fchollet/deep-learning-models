@@ -1,6 +1,6 @@
 # Trained image classification models for Keras
 
-This repository contains code and weights files for the following Keras models:
+This repository contains code for the following Keras models:
 
 - VGG16
 - VGG19
@@ -76,5 +76,14 @@ block4_pool_features = model.predict(x)
 
 ## References
 
-- [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
-- [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
+- [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) - please cite this paper if you use the VGG models in your work.
+- [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) - please cite this paper if you use the ResNet model in your work.
+
+Additionally, don't forget to [cite Keras](https://keras.io/getting-started/faq/#how-should-i-cite-keras) if you use these models.
+
+
+## License
+
+- All code in this repository is under the MIT license as specified by the LICENSE file.
+- The ResNet50 weights are ported from the ones [released by Kaiming He](https://github.com/KaimingHe/deep-residual-networks) under the [MIT license](https://github.com/KaimingHe/deep-residual-networks/blob/master/LICENSE).
+- The VGG16 and VGG19 weights are ported from the ones [released by VGG at Oxford](http://www.robots.ox.ac.uk/~vgg/research/very_deep/) under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/4.0/).
