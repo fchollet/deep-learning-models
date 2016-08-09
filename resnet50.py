@@ -24,10 +24,10 @@ from keras.utils.data_utils import get_file
 from imagenet_utils import decode_predictions, preprocess_input
 
 
-TH_WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/resnet50_weights_th_dim_ordering_th_kernels.h5'
-TF_WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/resnet50_weights_tf_dim_ordering_tf_kernels.h5'
-TH_WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/resnet50_weights_th_dim_ordering_th_kernels_notop.h5'
-TF_WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+TH_WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_th_dim_ordering_th_kernels.h5'
+TF_WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels.h5'
+TH_WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_th_dim_ordering_th_kernels_notop.h5'
+TF_WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 
 def identity_block(input_tensor, kernel_size, filters, stage, block):
@@ -202,11 +202,13 @@ def ResNet50(include_top=True, weights='imagenet',
             if include_top:
                 weights_path = get_file('resnet50_weights_th_dim_ordering_th_kernels.h5',
                                         TH_WEIGHTS_PATH,
-                                        cache_subdir='models')
+                                        cache_subdir='models',
+                                        md5_hash='1c1f8f5b0c8ee28fe9d950625a230e1c')
             else:
                 weights_path = get_file('resnet50_weights_th_dim_ordering_th_kernels_notop.h5',
                                         TH_WEIGHTS_PATH_NO_TOP,
-                                        cache_subdir='models')
+                                        cache_subdir='models',
+                                        md5_hash='f64f049c92468c9affcd44b0976cdafe')
             model.load_weights(weights_path)
             if K.backend() == 'tensorflow':
                 warnings.warn('You are using the TensorFlow backend, yet you '
@@ -222,11 +224,13 @@ def ResNet50(include_top=True, weights='imagenet',
             if include_top:
                 weights_path = get_file('resnet50_weights_tf_dim_ordering_tf_kernels.h5',
                                         TF_WEIGHTS_PATH,
-                                        cache_subdir='models')
+                                        cache_subdir='models',
+                                        md5_hash='a7b3fe01876f51b976af0dea6bc144eb')
             else:
                 weights_path = get_file('resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5',
                                         TF_WEIGHTS_PATH_NO_TOP,
-                                        cache_subdir='models')
+                                        cache_subdir='models',
+                                        md5_hash='a268eb855778b3df3c7506639542a6af')
             model.load_weights(weights_path)
             if K.backend() == 'theano':
                 convert_all_kernels_in_model(model)
