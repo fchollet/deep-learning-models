@@ -61,8 +61,8 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
     x = Convolution2D(nb_filter3, 1, 1, name=conv_name_base + '2c')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
 
-    x = merge([x, input_tensor], mode='sum', name='merge_' + str(stage) + block)
-    x = Activation('relu', name='act_' + str(stage) + block)(x)
+    x = merge([x, input_tensor], mode='sum', name='merge' + str(stage) + block)
+    x = Activation('relu', name='act' + str(stage) + block)(x)
     return x
 
 
