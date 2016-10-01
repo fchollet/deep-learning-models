@@ -83,18 +83,29 @@ def AutoColorize(include_top=True, weights='imagenet',
     fc7 = Convolution2D(4096, 1, 1, activation='relu', border_mode='same', name='fc7')(dropout_fc6)
     print(fc7._keras_shape)
     dropout_fc7 = Dropout(0.5, name='dropout_fc7')(fc7)
-    fc7_reshaped = Reshape((4096,16,16), name='fc7_reshaped')(dropout_fc7)
-    print(fc7_reshaped._keras_shape)
-    fc7_full_reshaped = Deconvolution2D(4096, 16, 16, (1, 4096, 16, 16), subsample=(8,8), border_mode='same', name='fc7_full_reshaped')(fc7_reshaped)
-    print(fc7_full_reshaped._keras_shape)
+    #fc7_reshaped = Reshape((4096,16,16), name='fc7_reshaped')(dropout_fc7)
+    # print(fc7_reshaped._keras_shape)
+    # fc7_full_reshaped = Deconvolution2D(4096, 16, 16, (1, 4096, 16, 16), subsample=(8,8), border_mode='same', name='fc7_full_reshaped')(fc7_reshaped)
+    # print(fc7_full_reshaped._keras_shape)
 
+    # Dense Hypercolumn
+    data_full = AveragePooling2D(pool_size=(4, 4), strides=(4, 4), name='data_full')(img_input)
+    print(data_full._keras_shape)
+    conv1_1_full = AveragePooling2D(pool_size=(4, 4), strides=(4, 4), name='conv1_1_full')(conv1_1)
+    conv1_2_full = AveragePooling2D(pool_size=(4, 4), strides=(4, 4), name='conv1_2_full')(conv1_2)
+    print(conv1_2_full._keras_shape)
+    conv2_1_full = AveragePooling2D(pool_size=(2, 2), strides=(2, 2), name='conv2_1_full')(conv2_1)
+    conv2_2_full = AveragePooling2D(pool_size=(2, 2), strides=(2, 2), name='conv2_2_full')(conv2_2)
+    print(conv2_2_full._keras_shape)
+    dense_hypercolumn = merge([conv2_2_full, conv2_1_full, conv1_2_full, conv1_1_full, data_full], mode='concat',
+                              name='dense_hypercolumn', concat_axis=1)
 
     #if include_top:
         # Classification block
 
 
     # Create model
-    model = Model(img_input, fc7_full_reshaped)
+    model = Model(img_input, dropout_fc7)
 
     # load weights
 
