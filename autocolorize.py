@@ -148,10 +148,7 @@ def AutoColorize(include_top=True, weights='imagenet',
     if include_top:
         # Classification block
         prediction_h = Convolution2D(32, 1, 1, border_mode='same', name='prediction_h')(h_fc1)
-
-        prediction_h_softmax = TimeDistributed(
-            Activation('softmax'), input_shape=(None, 32, 1, 128, 128), name='prediction_h_softmax')(Reshape((32, 1, 128, 128))(prediction_h))
-
+        prediction_h_softmax = Activation('softmax', name='prediction_h_softmax')(Flatten()(prediction_h))
         prediction_h_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_h_softmax_reshaped')(prediction_h_softmax)
         prediction_h_full_reshaped = TimeDistributed(
             Deconvolution2D(1, 8, 8, subsample=(4, 4), output_shape=(None, 32, 512, 512), border_mode='same'),
@@ -159,7 +156,7 @@ def AutoColorize(include_top=True, weights='imagenet',
         prediction_h_full =  Reshape((32, 512, 512), name='prediction_h_full')(prediction_h_full_reshaped)
 
         prediction_c = Convolution2D(32, 1, 1, border_mode='same', name='prediction_c')(h_fc1)
-        prediction_c_softmax = Activation('softmax', name='prediction_c_softmax')(Reshape((32, 128, 128))(prediction_c))
+        prediction_c_softmax = Activation('softmax', name='prediction_c_softmax')(Flatten()(prediction_c))
         prediction_c_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_c_softmax_reshaped')(prediction_c_softmax)
         prediction_c_full_reshaped = TimeDistributed(
             Deconvolution2D(1, 8, 8, subsample=(4, 4), output_shape=(None, 32, 512, 512), border_mode='same'),
