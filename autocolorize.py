@@ -78,12 +78,13 @@ def AutoColorize(include_top=True, weights='imagenet',
     # Block 7
     fc7 = Convolution2D(4096, 1, 1, activation='relu', border_mode='same', name='fc7')(dropout_fc6)
     dropout_fc7 = Dropout(0.5, name='dropout_fc7')(fc7)
-    print(dropout_fc7._keras_shape)
 
     # Dense Hypercolumn
     data_full = AveragePooling2D(pool_size=(4, 4), strides=(4, 4), name='data_full')(img_input)
+
     conv1_1_full = AveragePooling2D(pool_size=(4, 4), strides=(4, 4), name='conv1_1_full')(conv1_1)
     conv1_2_full = AveragePooling2D(pool_size=(4, 4), strides=(4, 4), name='conv1_2_full')(conv1_2)
+
     conv2_1_full = AveragePooling2D(pool_size=(2, 2), strides=(2, 2), name='conv2_1_full')(conv2_1)
     conv2_2_full = AveragePooling2D(pool_size=(2, 2), strides=(2, 2), name='conv2_2_full')(conv2_2)
 
@@ -144,19 +145,33 @@ def AutoColorize(include_top=True, weights='imagenet',
     # Fully connected
     h_fc1 = Convolution2D(1024, 1, 1, activation='relu', border_mode='same', name='h_fc1')(dense_hypercolumn)
 
-    # if include_top:
-    #     # Classification block
-    #     prediction_h = Convolution2D(32, 1, 1, border_mode='same', name='prediction_h')(h_fc1)
-    #     #prediction_h_softmax = Activation('softmax')(prediction_h)
-    #     prediction_c = Convolution2D(32, 1, 1, border_mode='same', name='prediction_c')(h_fc1)
-    #     #prediction_c_softmax = Activation('softmax')(prediction_c)
-    #
-    #
-    #     model = Model(input=img_input, output=[])
-    # else:
-    #     # Create model
+    if include_top:
+        # Classification block
+        prediction_h = Convolution2D(32, 1, 1, border_mode='same', name='prediction_h')(h_fc1)
 
-    model = Model(input=img_input, output=h_fc1)
+        prediction_h_softmax = TimeDistributed(
+            Activation('softmax'), input_shape=(None, 32, 1, 128, 128), name='prediction_h_softmax')(Reshape((32, 1, 128, 128))(prediction_h))
+
+        prediction_h_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_h_softmax_reshaped')(prediction_h_softmax)
+        prediction_h_full_reshaped = TimeDistributed(
+            Deconvolution2D(1, 8, 8, subsample=(4, 4), output_shape=(None, 32, 512, 512), border_mode='same'),
+            input_shape=(None, 32, 1, 128, 128), name='prediction_h_full_reshaped')(prediction_h_softmax_reshaped)
+        prediction_h_full =  Reshape((32, 512, 512), name='prediction_h_full')(prediction_h_full_reshaped)
+
+        prediction_c = Convolution2D(32, 1, 1, border_mode='same', name='prediction_c')(h_fc1)
+        prediction_c_softmax = Activation('softmax', name='prediction_c_softmax')(Reshape((32, 128, 128))(prediction_c))
+        prediction_c_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_c_softmax_reshaped')(prediction_c_softmax)
+        prediction_c_full_reshaped = TimeDistributed(
+            Deconvolution2D(1, 8, 8, subsample=(4, 4), output_shape=(None, 32, 512, 512), border_mode='same'),
+            input_shape=(None, 32, 1, 128, 128), name='prediction_c_full_reshaped')(prediction_c_softmax_reshaped)
+        prediction_c_full = Reshape((32, 512, 512), name='prediction_c_full')(prediction_c_full_reshaped)
+
+        model = Model(input=img_input, output=[prediction_h_full, prediction_c_full])
+    else:
+        # Create model
+        model = Model(input=img_input, output=h_fc1)
+
+    model.save_weights('test.h5')
 
     vutil.plot(model, show_shapes=True)
 
