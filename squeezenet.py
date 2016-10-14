@@ -158,8 +158,7 @@ if __name__ == '__main__':
     model = SqueezeNet(1000, finetune=False, weights='imagenet')
 
     start = time.time()
-    img_path = '/Users/refikcanmalli/Desktop/CODE/Python/keras-squeezenet/images/cat.jpeg'
-    # img_path = 'elephant.jpg'
+    img_path = 'elephant.jpg'
     img = image.load_img(img_path, target_size=(227, 227))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
