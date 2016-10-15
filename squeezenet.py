@@ -28,8 +28,8 @@ import numpy as np
 import warnings
 
 
-TH_WEIGHTS_PATH = 'PATH/squeezenet_weights_th_dim_ordering_th_kernels.h5'
-TF_WEIGHTS_PATH = 'PATH/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
+TH_WEIGHTS_PATH = 'https://github.com/rcmalli/deep-learning-models/releases/download/v0.4/squeezenet_weights_th_dim_ordering_th_kernels.h5'
+TF_WEIGHTS_PATH = 'https://github.com/rcmalli/deep-learning-models/releases/download/v0.4/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
 
 
 # Modular function for Fire Node
