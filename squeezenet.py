@@ -1,16 +1,4 @@
-from keras.layers import Input, merge
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
-from keras.layers.core import Dropout, Activation
-from keras.layers.pooling import GlobalAveragePooling2D
-from keras.models import Model
-from keras import backend as K
-from keras.utils.layer_utils import convert_all_kernels_in_model
-from keras.utils.data_utils import get_file
-from keras.preprocessing import image
-from imagenet_utils import decode_predictions, preprocess_input
-import numpy as np
-import warnings
-
+# -*- coding: utf-8 -*-
 '''SqueezeNet model for Keras.
 
 # Reference:
@@ -25,6 +13,20 @@ import warnings
 - [Original Squeezenet](https://github.com/DeepScale/SqueezeNet)
 
 '''
+
+from keras.layers import Input, merge
+from keras.layers.convolutional import Convolution2D, MaxPooling2D
+from keras.layers.core import Dropout, Activation
+from keras.layers.pooling import GlobalAveragePooling2D
+from keras.models import Model
+from keras import backend as K
+from keras.utils.layer_utils import convert_all_kernels_in_model
+from keras.utils.data_utils import get_file
+from keras.preprocessing import image
+from imagenet_utils import decode_predictions, preprocess_input
+import numpy as np
+import warnings
+
 
 TH_WEIGHTS_PATH = 'PATH/squeezenet_weights_th_dim_ordering_th_kernels.h5'
 TF_WEIGHTS_PATH = 'PATH/squeezenet_weights_tf_dim_ordering_tf_kernels.h5'
@@ -54,27 +56,29 @@ def fire_module(x, fire_id, squeeze=16, expand=64):
     return x
 
 
-def SqueezeNet(nb_classes, finetune=False, input_tensor=None, weights=None):
+def SqueezeNet(include_top=True, weights='imagenet', input_tensor=None):
     '''Instantiate the SqueezeNet architecture,
-        optionally loading weights pre-trained
-        on ImageNet. Note that when using TensorFlow,
-        for best performance you should set
-        `image_dim_ordering="tf"` in your Keras config
-        at ~/.keras/keras.json.
-        The model and the weights are compatible with both
-        TensorFlow and Theano. The dimension ordering
-        convention used by the model is the one
-        specified in your Keras config file.
-        # Arguments
-            nb_classes: Number of classes for output shape
-            finetune: optional parameter for finetuning. Renames the 'conv10'
-                layer
-            weights: one of `None` (random initialization)
-                or "imagenet" (pre-training on ImageNet).
-            input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image input for the model.
-        # Returns
-            A Keras model instance.
+    optionally loading weights pre-trained
+    on ImageNet. Note that when using TensorFlow,
+    for best performance you should set
+    `image_dim_ordering="tf"` in your Keras config
+    at ~/.keras/keras.json.
+
+    The model and the weights are compatible with both
+    TensorFlow and Theano. The dimension ordering
+    convention used by the model is the one
+    specified in your Keras config file.
+
+    # Arguments
+        include_top: whether to include the 3 fully-connected
+            layers at the top of the network.
+        weights: one of `None` (random initialization)
+            or "imagenet" (pre-training on ImageNet).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+
+    # Returns
+        A Keras model instance.
     '''
 
     if weights not in {'imagenet', None}:
@@ -113,15 +117,13 @@ def SqueezeNet(nb_classes, finetune=False, input_tensor=None, weights=None):
     x = fire_module(x, fire_id=9, squeeze=64, expand=256)
     x = Dropout(0.5, name='drop9')(x)
 
-    if finetune:
-        x = Convolution2D(nb_classes, 1, 1, border_mode='valid', name='finetuned_conv10')(x)
-    else:
-        x = Convolution2D(nb_classes, 1, 1, border_mode='valid', name='conv10')(x)
+    if include_top:
+        x = Convolution2D(1000, 1, 1, border_mode='valid', name='conv10')(x)
+        x = Activation('relu', name='relu_conv10')(x)
+        x = GlobalAveragePooling2D()(x)
+        x = Activation('softmax', name='loss')(x)
 
-    x = Activation('relu', name='relu_conv10')(x)
-    x = GlobalAveragePooling2D()(x)
-    out = Activation('softmax', name='loss')(x)
-    model = Model(input=img_input, output=[out])
+    model = Model(input=img_input, output=[x])
 
     # load weights
     if weights == 'imagenet':
@@ -155,8 +157,7 @@ def SqueezeNet(nb_classes, finetune=False, input_tensor=None, weights=None):
 if __name__ == '__main__':
     import time
 
-    model = SqueezeNet(1000, finetune=False, weights='imagenet')
-
+    model = SqueezeNet()
     start = time.time()
     img_path = 'elephant.jpg'
     img = image.load_img(img_path, target_size=(227, 227))
