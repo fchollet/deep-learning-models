@@ -15,7 +15,6 @@ from keras.utils.data_utils import get_file
 from imagenet_utils import decode_predictions, preprocess_input
 import keras.utils.visualize_util as vutil
 
-
 def AutoColorize(include_top=True, weights='imagenet',
                  input_tensor=None):
     if weights not in {'imagenet', None}:
@@ -148,16 +147,20 @@ def AutoColorize(include_top=True, weights='imagenet',
     if include_top:
         # Classification block
         prediction_h = Convolution2D(32, 1, 1, border_mode='same', name='prediction_h')(h_fc1)
-        prediction_h_softmax = Activation('softmax', name='prediction_h_softmax')(Flatten()(prediction_h))
-        prediction_h_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_h_softmax_reshaped')(prediction_h_softmax)
+        prediction_h_softmax = Activation('softmax', name='prediction_h_softmax')(
+            Reshape((32, 128 * 128))(prediction_h))
+        prediction_h_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_h_softmax_reshaped')(
+            prediction_h_softmax)
         prediction_h_full_reshaped = TimeDistributed(
             Deconvolution2D(1, 8, 8, subsample=(4, 4), output_shape=(None, 32, 512, 512), border_mode='same'),
             input_shape=(None, 32, 1, 128, 128), name='prediction_h_full_reshaped')(prediction_h_softmax_reshaped)
-        prediction_h_full =  Reshape((32, 512, 512), name='prediction_h_full')(prediction_h_full_reshaped)
+        prediction_h_full = Reshape((32, 512, 512), name='prediction_h_full')(prediction_h_full_reshaped)
 
         prediction_c = Convolution2D(32, 1, 1, border_mode='same', name='prediction_c')(h_fc1)
-        prediction_c_softmax = Activation('softmax', name='prediction_c_softmax')(Flatten()(prediction_c))
-        prediction_c_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_c_softmax_reshaped')(prediction_c_softmax)
+        prediction_c_softmax = Activation('softmax', name='prediction_c_softmax')(
+            Reshape((32, 128 * 128))(prediction_c))
+        prediction_c_softmax_reshaped = Reshape((32, 1, 128, 128), name='prediction_c_softmax_reshaped')(
+            prediction_c_softmax)
         prediction_c_full_reshaped = TimeDistributed(
             Deconvolution2D(1, 8, 8, subsample=(4, 4), output_shape=(None, 32, 512, 512), border_mode='same'),
             input_shape=(None, 32, 1, 128, 128), name='prediction_c_full_reshaped')(prediction_c_softmax_reshaped)
@@ -168,20 +171,67 @@ def AutoColorize(include_top=True, weights='imagenet',
         # Create model
         model = Model(input=img_input, output=h_fc1)
 
-    model.save_weights('test.h5')
-
     vutil.plot(model, show_shapes=True)
 
     # load weights
+    # import h5py
+    #
+    # caffe = h5py.File('autocolorize.caffemodel.h5', 'r')
+    #
+    # def rot90(W):
+    #     for i in range(W.shape[0]):
+    #         for j in range(W.shape[1]):
+    #             W[i, j] = np.rot90(W[i, j], 2)
+    #     return W
+    #
+    # def set_weight(hdf5_file, keras_model, layer_name):
+    #     layer = keras_model.get_layer(layer_name)
+    #
+    #     hdf5_weight_name = '/data/' + layer_name + '/0'
+    #     print(layer.get_weights()[0].shape)
+    #     layer_weight = rot90(np.reshape(caffe[hdf5_weight_name][:], layer.get_weights()[0].shape))
+    #
+    #     bias_name = '/data/' + layer_name + '/1'
+    #     bias_weight = caffe[bias_name][:]
+    #
+    #     layer.set_weights([layer_weight, bias_weight])
+    #
+    # set_weight(caffe, model, 'conv1_1')
+    # set_weight(caffe, model, 'conv1_2')
+    # set_weight(caffe, model, 'conv2_1')
+    # set_weight(caffe, model, 'conv2_2')
+    # set_weight(caffe, model, 'conv3_1')
+    # set_weight(caffe, model, 'conv3_2')
+    # set_weight(caffe, model, 'conv3_3')
+    # set_weight(caffe, model, 'conv4_1')
+    # set_weight(caffe, model, 'conv4_2')
+    # set_weight(caffe, model, 'conv4_3')
+    # set_weight(caffe, model, 'conv5_1')
+    # set_weight(caffe, model, 'conv5_2')
+    # set_weight(caffe, model, 'conv5_3')
+    # set_weight(caffe, model, 'fc6')
+    # set_weight(caffe, model, 'fc7')
+    # set_weight(caffe, model, 'h_fc1')
+    # set_weight(caffe, model, 'prediction_c')
+    # set_weight(caffe, model, 'prediction_h')
+    #
+    # model.save_weights('test.h5')
+
+    model.load_weights('test.h5')
+
 
     return model
 
 
 if __name__ == '__main__':
     model = AutoColorize(include_top=True, weights='imagenet')
-    img_path = 'cat.jpg'
-    img = image.load_img(img_path, target_size=(514, 514))
-    x = image.img_to_array(img)
+    img_path = 'cat-bw.jpg'
+    img = image.load_img(img_path, target_size=(512, 512))
+    x = image.img_to_array(img).mean(axis=0)
+    x = np.expand_dims(x, axis=0)
+    #x = preprocess_input(x)
+    print('Input image shape:', x.shape)
 
-    preds = model.predict(x)
-    img_color = image.array_to_img(preds)
+    preds_c, pred_h = model.predict(np.reshape(x, (1, 1, 512, 512)))
+
+    img_color = image.array_to_img(preds_c)
