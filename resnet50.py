@@ -47,21 +47,22 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
         bn_axis = 1
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
+    act_name_base = 'act' + str(stage) + block + '_branch'
 
     x = Convolution2D(nb_filter1, 1, 1, name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
-    x = Activation('relu')(x)
+    x = Activation('relu', name=act_name_base + '2a')(x)
 
     x = Convolution2D(nb_filter2, kernel_size, kernel_size,
                       border_mode='same', name=conv_name_base + '2b')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
-    x = Activation('relu')(x)
+    x = Activation('relu', name=act_name_base + '2b')(x)
 
     x = Convolution2D(nb_filter3, 1, 1, name=conv_name_base + '2c')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
 
-    x = merge([x, input_tensor], mode='sum')
-    x = Activation('relu')(x)
+    x = merge([x, input_tensor], mode='sum', name='merge' + str(stage) + block)
+    x = Activation('relu', name='act' + str(stage) + block)(x)
     return x
 
 
@@ -85,16 +86,17 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
         bn_axis = 1
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
+    act_name_base = 'act' + str(stage) + block + '_branch'
 
     x = Convolution2D(nb_filter1, 1, 1, subsample=strides,
                       name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
-    x = Activation('relu')(x)
+    x = Activation('relu', name=act_name_base + '2a')(x)
 
     x = Convolution2D(nb_filter2, kernel_size, kernel_size, border_mode='same',
                       name=conv_name_base + '2b')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
-    x = Activation('relu')(x)
+    x = Activation('relu', name=act_name_base + '2b')(x)
 
     x = Convolution2D(nb_filter3, 1, 1, name=conv_name_base + '2c')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
@@ -103,8 +105,8 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
                              name=conv_name_base + '1')(input_tensor)
     shortcut = BatchNormalization(axis=bn_axis, name=bn_name_base + '1')(shortcut)
 
-    x = merge([x, shortcut], mode='sum')
-    x = Activation('relu')(x)
+    x = merge([x, shortcut], mode='sum', name='merge' + str(stage) + block)
+    x = Activation('relu', name='act' + str(stage) + block)(x)
     return x
 
 
@@ -150,10 +152,10 @@ def ResNet50(include_top=True, weights='imagenet',
             input_shape = (None, None, 3)
 
     if input_tensor is None:
-        img_input = Input(shape=input_shape)
+        img_input = Input(shape=input_shape, name='input')
     else:
         if not K.is_keras_tensor(input_tensor):
-            img_input = Input(tensor=input_tensor)
+            img_input = Input(tensor=input_tensor, name='input')
         else:
             img_input = input_tensor
     if K.image_dim_ordering() == 'tf':
@@ -161,11 +163,11 @@ def ResNet50(include_top=True, weights='imagenet',
     else:
         bn_axis = 1
 
-    x = ZeroPadding2D((3, 3))(img_input)
+    x = ZeroPadding2D((3, 3), name='zeropadding')(img_input)
     x = Convolution2D(64, 7, 7, subsample=(2, 2), name='conv1')(x)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D((3, 3), strides=(2, 2))(x)
+    x = Activation('relu', name='act_conv1')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2), name='max_pool')(x)
 
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1))
     x = identity_block(x, 3, [64, 64, 256], stage=2, block='b')
