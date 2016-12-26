@@ -14,7 +14,10 @@ from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.utils.data_utils import get_file
 from imagenet_utils import preprocess_input
 
-TH_WEIGHTS_PATH = 'Keras_model_weights.h5'
+
+TF_WEIGHTS_PATH = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_tf_dim_ordering_tf_kernels.h5'
+TF_WEIGHTS_PATH_NO_TOP = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_tf_dim_ordering_tf_kernels_notop.h5'
+
 
 def identity_block(input_tensor, kernel_size, filters, stage, block):
     '''The identity_block is the block that has no conv layer at shortcut
@@ -157,129 +160,19 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
     model = Model(img_input, x)
 
     # load weights
-    import h5py
-
-    caffe = h5py.File('Keras_model_weights.h5', 'r')
-    orig = h5py.File('resnet_50_1by2_nsfw.h5', 'r')
-
-    layer = model.get_layer('conv_1')
-    layer.set_weights([orig['/data/conv_1/0'][:], orig['/data/conv_1/1'][:]])
-
-    layer = model.get_layer('bn_1')
-    layer.set_weights([caffe['scale_1/scale_1_gamma'][:], caffe['scale_1/scale_1_beta'][:], caffe['bn_1/bn_1_running_mean'][:], caffe['bn_1/bn_1_running_std'][:]])
-
-    # stage 0
-    for block in range(3):
-        if block == 0:
-            list = ['_branch2a', '_branch2b', '_branch2c', '_proj_shortcut']
-        else:
-            list = ['_branch2a', '_branch2b', '_branch2c']
-        for branch in list:
-            base_name = '_stage0_block' + str(block) + branch
-            bn_name = 'bn' + base_name
-            conv_name = 'conv' + base_name
-            orig_name = '/data/' + conv_name
-            scale_name = 'scale' + base_name
-
-            print(orig_name)
-            layer = model.get_layer(conv_name)
-            layer.set_weights(
-                [orig[orig_name + '/0'][:], orig[orig_name + '/1'][:]])
-
-            layer = model.get_layer(bn_name)
-            layer.set_weights(
-                [caffe[scale_name + '/' + scale_name + '_gamma'][:], caffe[scale_name + '/' + scale_name + '_beta'][:], caffe[bn_name + '/' + bn_name + '_running_mean'][:],
-                 caffe[bn_name + '/' + bn_name + '_running_std'][:]])
-
-    # stage 1
-    for block in range(3):
-        if block == 0:
-            list = ['_branch2a', '_branch2b', '_branch2c', '_proj_shortcut']
-        else:
-            list = ['_branch2a', '_branch2b', '_branch2c']
-        for branch in list:
-            base_name = '_stage1_block' + str(block) + branch
-            bn_name = 'bn' + base_name
-            conv_name = 'conv' + base_name
-            orig_name = '/data/' + conv_name
-            scale_name = 'scale' + base_name
-
-            print(conv_name)
-            layer = model.get_layer(conv_name)
-            layer.set_weights(
-                [orig[orig_name + '/0'][:], orig[orig_name + '/1'][:]])
-
-            layer = model.get_layer(bn_name)
-            layer.set_weights(
-                [caffe[scale_name + '/' + scale_name + '_gamma'][:], caffe[scale_name + '/' + scale_name + '_beta'][:], caffe[bn_name + '/' + bn_name + '_running_mean'][:],
-                 caffe[bn_name + '/' + bn_name + '_running_std'][:]])
-
-    # stage 2
-    for block in range(6):
-        if block == 0:
-            list = ['_branch2a', '_branch2b', '_branch2c', '_proj_shortcut']
-        else:
-            list = ['_branch2a', '_branch2b', '_branch2c']
-        for branch in list:
-            base_name = '_stage2_block' + str(block) + branch
-            bn_name = 'bn' + base_name
-            conv_name = 'conv' + base_name
-            orig_name = '/data/' + conv_name
-            scale_name = 'scale' + base_name
-
-            print(conv_name)
-            layer = model.get_layer(conv_name)
-            layer.set_weights(
-                [orig[orig_name + '/0'][:], orig[orig_name + '/1'][:]])
-
-            layer = model.get_layer(bn_name)
-            layer.set_weights(
-                [caffe[scale_name + '/' + scale_name + '_gamma'][:], caffe[scale_name + '/' + scale_name + '_beta'][:], caffe[bn_name + '/' + bn_name + '_running_mean'][:],
-                 caffe[bn_name + '/' + bn_name + '_running_std'][:]])
-
-    # stage 3
-    for block in range(3):
-        if block == 0:
-            list = ['_branch2a', '_branch2b', '_branch2c', '_proj_shortcut']
-        else:
-            list = ['_branch2a', '_branch2b', '_branch2c']
-        for branch in list:
-            base_name = '_stage3_block' + str(block) + branch
-            bn_name = 'bn' + base_name
-            conv_name = 'conv' + base_name
-            orig_name = '/data/' + conv_name
-            scale_name = 'scale' + base_name
-
-            print(conv_name)
-            layer = model.get_layer(conv_name)
-            layer.set_weights(
-                [orig[orig_name + '/0'][:], orig[orig_name + '/1'][:]])
-
-            layer = model.get_layer(bn_name)
-            layer.set_weights(
-                [caffe[scale_name + '/' + scale_name + '_gamma'][:], caffe[scale_name + '/' + scale_name + '_beta'][:], caffe[bn_name + '/' + bn_name + '_running_mean'][:],
-                 caffe[bn_name + '/' + bn_name + '_running_std'][:]])
-
-    if include_top:
-        layer = model.get_layer('fc_nsfw')
-        layer.set_weights([caffe['fc_nsfw/fc_nsfw_W'][:], caffe['fc_nsfw/fc_nsfw_b'][:]])
-
-    caffe.close()
-    orig.close()
-
-    model.save_weights('open_nsfw_weights_th_dim_ordering_th_kernels.h5')
-    # #model.save_weights('open_nsfw_weights_th_dim_ordering_th_kernels_notop.h5')
-
     if weights == 'yahoo':
         print('K.image_dim_ordering:', K.image_dim_ordering())
         if K.image_dim_ordering() == 'th':
             if include_top:
-                weights_path = 'open_nsfw_weights_th_dim_ordering_th_kernels.h5'
+                weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels.h5',
+                                        TH_WEIGHTS_PATH,
+                                        cache_subdir='models',
+                                        md5_hash='')
             else:
                 weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels_notop.h5',
                                         TH_WEIGHTS_PATH_NO_TOP,
                                         cache_subdir='models',
-                                        md5_hash='f64f049c92468c9affcd44b0976cdafe')
+                                        md5_hash='')
             model.load_weights(weights_path)
             if K.backend() == 'tensorflow':
                 warnings.warn('You are using the TensorFlow backend, yet you '
@@ -296,29 +189,27 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
                 weights_path = get_file('open_nsfw_weights_tf_dim_ordering_tf_kernels.h5',
                                         TF_WEIGHTS_PATH,
                                         cache_subdir='models',
-                                        md5_hash='a7b3fe01876f51b976af0dea6bc144eb')
+                                        md5_hash='0a9b5476c9a972883490325977575f64')
             else:
                 weights_path = get_file('open_nsfw_weights_tf_dim_ordering_tf_kernels_notop.h5',
                                         TF_WEIGHTS_PATH_NO_TOP,
                                         cache_subdir='models',
-                                        md5_hash='a268eb855778b3df3c7506639542a6af')
+                                        md5_hash='0fc9e68678296e024709dda4dcd1f4e8')
             model.load_weights(weights_path)
             if K.backend() == 'theano':
                 convert_all_kernels_in_model(model)
     return model
 
+
 if __name__ == '__main__':
     model = OpenNsfw(include_top=True, weights='yahoo')
 
-    img_path = 'baywatchphoto.jpg'
+    img_path = 'elephant.jpg'
     img = image.load_img(img_path, target_size=(224, 224))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
-    #x = preprocess_input(x)
+    x = preprocess_input(x)
     print('Input image shape:', x.shape)
-
-    #x = 255.0 * (x - x.min()) / (x.max() - x.min())
-    #print(x)
 
     preds = model.predict(x)
     print('Predicted:', preds)
