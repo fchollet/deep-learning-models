@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+'''Yahoo's Not Suitable for Work (NSFW) classification deep neural network for Keras.
+
+# Reference:
+
+- [Open Sourcing a Deep Learning Solution for Detecting NSFW Images](https://yahooeng.tumblr.com/post/151148689421/open-sourcing-a-deep-learning-solution-for)
+'''
 from __future__ import print_function
 
 import numpy as np
@@ -15,7 +22,9 @@ from keras.utils.data_utils import get_file
 from imagenet_utils import preprocess_input
 
 
+TH_WEIGHTS_PATH = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_th_dim_ordering_th_kernels.h5'
 TF_WEIGHTS_PATH = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_tf_dim_ordering_tf_kernels.h5'
+TH_WEIGHTS_PATH_NO_TOP = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_th_dim_ordering_th_kernels_notop.h5'
 TF_WEIGHTS_PATH_NO_TOP = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 
@@ -167,12 +176,12 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
                 weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels.h5',
                                         TH_WEIGHTS_PATH,
                                         cache_subdir='models',
-                                        md5_hash='')
+                                        md5_hash='3df51a6fe388005cec8c6ceb986dd4fa')
             else:
                 weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels_notop.h5',
                                         TH_WEIGHTS_PATH_NO_TOP,
                                         cache_subdir='models',
-                                        md5_hash='')
+                                        md5_hash='ba0f4580d7ff4ba8592b82238cca7bf6')
             model.load_weights(weights_path)
             if K.backend() == 'tensorflow':
                 warnings.warn('You are using the TensorFlow backend, yet you '
