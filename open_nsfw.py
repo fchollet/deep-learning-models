@@ -176,12 +176,12 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
                 weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels.h5',
                                         TH_WEIGHTS_PATH,
                                         cache_subdir='models',
-                                        md5_hash='3df51a6fe388005cec8c6ceb986dd4fa')
+                                        md5_hash='9b3e96285fcd19c78b2eb10c0cbc5573')
             else:
                 weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels_notop.h5',
                                         TH_WEIGHTS_PATH_NO_TOP,
                                         cache_subdir='models',
-                                        md5_hash='ba0f4580d7ff4ba8592b82238cca7bf6')
+                                        md5_hash='9cf9d4413b656cc12f62491745ebc901')
             model.load_weights(weights_path)
             if K.backend() == 'tensorflow':
                 warnings.warn('You are using the TensorFlow backend, yet you '
