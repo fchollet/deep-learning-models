@@ -17,6 +17,7 @@ Pre-trained weights can be automatically loaded upon instantiation (`weights='im
 ### Classify images
 
 ```python
+import numpy as np
 from resnet50 import ResNet50
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input, decode_predictions
@@ -37,6 +38,7 @@ print('Predicted:', decode_predictions(preds))
 ### Extract features from images
 
 ```python
+import numpy as np
 from vgg16 import VGG16
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input
@@ -55,6 +57,7 @@ features = model.predict(x)
 ### Extract features from an arbitrary intermediate layer
 
 ```python
+import numpy as np
 from vgg19 import VGG19
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input
