@@ -20,6 +20,7 @@ Pre-trained weights can be automatically loaded upon instantiation (`weights='im
 from resnet50 import ResNet50
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input, decode_predictions
+import numpy as np
 
 model = ResNet50(weights='imagenet')
 
