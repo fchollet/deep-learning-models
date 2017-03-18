@@ -20,6 +20,7 @@ Pre-trained weights can be automatically loaded upon instantiation (`weights='im
 from resnet50 import ResNet50
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input, decode_predictions
+import numpy as np
 
 model = ResNet50(weights='imagenet')
 
@@ -40,6 +41,7 @@ print('Predicted:', decode_predictions(preds))
 from vgg16 import VGG16
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input
+import numpy as np
 
 model = VGG16(weights='imagenet', include_top=False)
 
@@ -59,6 +61,7 @@ from vgg19 import VGG19
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input
 from keras.models import Model
+import numpy as np
 
 base_model = VGG19(weights='imagenet')
 model = Model(input=base_model.input, output=base_model.get_layer('block4_pool').output)
