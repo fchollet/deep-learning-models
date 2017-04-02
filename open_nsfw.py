@@ -10,16 +10,17 @@ from __future__ import print_function
 import numpy as np
 import warnings
 
-from keras.layers import merge, Input
+from keras import layers
+from keras.layers import Input
 from keras.layers import Dense, Activation, Flatten
-from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
+from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
 from keras.layers import BatchNormalization
 from keras.models import Model
 from keras.preprocessing import image
 import keras.backend as K
 from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.utils.data_utils import get_file
-from imagenet_utils import preprocess_input
+from keras.applications.imagenet_utils import _obtain_input_shape, preprocess_input
 
 
 TH_WEIGHTS_PATH = 'https://dl.dropboxusercontent.com/u/3215373/open_nsfw_weights_th_dim_ordering_th_kernels.h5'
@@ -33,32 +34,32 @@ def identity_block(input_tensor, kernel_size, filters, stage, block):
 
     # Arguments
         input_tensor: input tensor
-        kernel_size: defualt 3, the kernel size of middle conv layer at main path
+        kernel_size: defualt (3, 3), the kernel size of middle conv layer at main path
         filters: list of integers, the nb_filters of 3 conv layer at main path
         stage: integer, current stage label, used for generating layer names
         block: 'a','b'..., current block label, used for generating layer names
     '''
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if K.image_dim_ordering() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1
     conv_name_base = 'conv_stage' + str(stage) + '_block' + str(block) + '_branch'
     bn_name_base = 'bn_stage' + str(stage) + '_block' + str(block) + '_branch'
 
-    x = Convolution2D(nb_filter1, 1, 1, name=conv_name_base + '2a')(input_tensor)
+    x = Conv2D(nb_filter1, (1, 1), name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
     x = Activation('relu')(x)
 
-    x = Convolution2D(nb_filter2, kernel_size, kernel_size,
-                      border_mode='same', name=conv_name_base + '2b')(x)
+    x = Conv2D(nb_filter2, kernel_size,
+                      padding='same', name=conv_name_base + '2b')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
     x = Activation('relu')(x)
 
-    x = Convolution2D(nb_filter3, 1, 1, name=conv_name_base + '2c')(x)
+    x = Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2c')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
 
-    x = merge([x, input_tensor], mode='sum')
+    x = layers.add([x, input_tensor])
     x = Activation('relu')(x)
     return x
 
@@ -67,16 +68,16 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
 
     # Arguments
         input_tensor: input tensor
-        kernel_size: default 3, the kernel size of middle conv layer at main path
+        kernel_size: default (3,3), the kernel size of middle conv layer at main path
         filters: list of integers, the nb_filters of 3 conv layer at main path
         stage: integer, current stage label, used for generating layer names
         block: 'a','b'..., current block label, used for generating layer names
 
-    Note that from stage 3, the first conv layer at main path is with subsample=(2,2)
-    And the shortcut should have subsample=(2,2) as well
+    Note that from stage 3, the first conv layer at main path is with strides=(2,2)
+    And the shortcut should have strides=(2,2) as well
     '''
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if K.image_dim_ordering() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -84,43 +85,39 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     bn_name_base = 'bn_stage' + str(stage) + '_block' + str(block) + '_branch'
     shortcut_name_post = '_stage' + str(stage) + '_block' + str(block) + '_proj_shortcut'
 
-    x = Convolution2D(nb_filter1, 1, 1, subsample=strides,
+    x = Conv2D(nb_filter1, (1, 1), strides=strides,
                       name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2a')(x)
     x = Activation('relu')(x)
 
-    x = Convolution2D(nb_filter2, kernel_size, kernel_size, border_mode='same',
+    x = Conv2D(nb_filter2, kernel_size, padding='same',
                       name=conv_name_base + '2b')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2b')(x)
     x = Activation('relu')(x)
 
-    x = Convolution2D(nb_filter3, 1, 1, name=conv_name_base + '2c')(x)
+    x = Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2c')(x)
     x = BatchNormalization(axis=bn_axis, name=bn_name_base + '2c')(x)
 
-    shortcut = Convolution2D(nb_filter3, 1, 1, subsample=strides,
+    shortcut = Conv2D(nb_filter3, (1, 1), strides=strides,
                              name='conv' + shortcut_name_post)(input_tensor)
     shortcut = BatchNormalization(axis=bn_axis, name='bn' + shortcut_name_post)(shortcut)
 
-    x = merge([x, shortcut], mode='sum')
+    x = layers.add([x, shortcut])
     x = Activation('relu')(x)
     return x
 
-def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
+def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None,
+             input_shape=None, pooling=None):
     if weights not in {'yahoo', None}:
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization) or `yahoo` '
                          '(pre-training on yahoo NSFW data).')
     # Determine proper input shape
-    if K.image_dim_ordering() == 'th':
-        if include_top:
-            input_shape = (3, 224, 224)
-        else:
-            input_shape = (3, None, None)
-    else:
-        if include_top:
-            input_shape = (224, 224, 3)
-        else:
-            input_shape = (None, None, 3)
+    input_shape = _obtain_input_shape(input_shape,
+                                      default_size=224,
+                                      min_size=197,
+                                      data_format=K.image_data_format(),
+                                      include_top=include_top)
 
     if input_tensor is None:
         img_input = Input(shape=input_shape)
@@ -129,13 +126,13 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
             img_input = Input(tensor=input_tensor)
         else:
             img_input = input_tensor
-    if K.image_dim_ordering() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1
 
     x = ZeroPadding2D((3, 3))(img_input)
-    x = Convolution2D(64, 7, 7, subsample=(2, 2), name='conv_1')(x)
+    x = Conv2D(64, (7, 7), strides=(2, 2), name='conv_1')(x)
     x = BatchNormalization(axis=bn_axis, name='bn_1')(x)
     x = Activation('relu', name='relu_1')(x)
     x = MaxPooling2D((3, 3), strides=(2, 2), name='pool1')(x)
@@ -165,13 +162,26 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
     if include_top:
         x = Flatten()(x)
         x = Dense(2, activation='softmax', name='fc_nsfw')(x)
+    else:
+        if pooling == 'avg':
+            x = GlobalAveragePooling2D()(x)
+        elif pooling == 'max':
+            x = GlobalMaxPooling2D()(x)
 
-    model = Model(img_input, x)
+    # Ensure that the model takes into account
+    # any potential predecessors of `input_tensor`.
+    if input_tensor is not None:
+        inputs = get_source_inputs(input_tensor)
+    else:
+        inputs = img_input
+
+    # Create model.
+    model = Model(img_input, x, name='open_nsfw')
 
     # load weights
     if weights == 'yahoo':
-        print('K.image_dim_ordering:', K.image_dim_ordering())
-        if K.image_dim_ordering() == 'th':
+        print('K.image_data_format:', K.image_data_format())
+        if K.image_data_format() == 'channels_first':
             if include_top:
                 weights_path = get_file('open_nsfw_weights_th_dim_ordering_th_kernels.h5',
                                         TH_WEIGHTS_PATH,
@@ -186,10 +196,10 @@ def OpenNsfw(include_top=True, weights='yahoo', input_tensor=None):
             if K.backend() == 'tensorflow':
                 warnings.warn('You are using the TensorFlow backend, yet you '
                               'are using the Theano '
-                              'image dimension ordering convention '
-                              '(`image_dim_ordering="th"`). '
+                              'image data format convention '
+                              '(`image_data_format="channels_first"`). '
                               'For best performance, set '
-                              '`image_dim_ordering="tf"` in '
+                              '`image_data_format="channels_last"` in '
                               'your Keras config '
                               'at ~/.keras/keras.json.')
                 convert_all_kernels_in_model(model)
