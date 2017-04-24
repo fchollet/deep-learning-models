@@ -37,8 +37,8 @@ from keras.applications.imagenet_utils import decode_predictions
 from keras.applications.imagenet_utils import _obtain_input_shape
 from keras.preprocessing import image
 
-WEIGHTS_PATH = ''
-WEIGHTS_PATH_NO_TOP = ''
+WEIGHTS_PATH = 'http://redcatlabs.com/downloads/inception_v1_weights_tf_dim_ordering_tf_kernels.h5'
+WEIGHTS_PATH_NO_TOP = 'http://redcatlabs.com/downloads/inception_v1_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 # conv2d_bn is similar to (but updated from) inception_v3 version
 def conv2d_bn(x,
@@ -302,7 +302,7 @@ def preprocess_input(x):
 
 
 if __name__ == '__main__':
-    model = InceptionV!(include_top=True, weights='imagenet')
+    model = InceptionV1(include_top=True, weights='imagenet')
 
     img_path = 'elephant.jpg'
     img = image.load_img(img_path, target_size=(224, 224))

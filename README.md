@@ -78,7 +78,8 @@ block4_pool_features = model.predict(x)
 - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) - please cite this paper if you use the VGG models in your work.
 - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) - please cite this paper if you use the ResNet model in your work.
 - [Rethinking the Inception Architecture for Computer Vision](http://arxiv.org/abs/1512.00567) - please cite this paper if you use the Inception v3 model in your work.
-- [Rethinking the Inception Architecture for Computer Vision](http://arxiv.org/abs/1512.00567) - please cite this paper if you use the Inception v1 model in your work.
+- [Going deeper with convolutions](http://arxiv.org/abs/1409.4842v1) - please cite this paper if you use the Inception v1 model in your work.
+
 - [Music-auto_tagging-keras](https://github.com/keunwoochoi/music-auto_tagging-keras)
 
 Additionally, don't forget to [cite Keras](https://keras.io/getting-started/faq/#how-should-i-cite-keras) if you use these models.
