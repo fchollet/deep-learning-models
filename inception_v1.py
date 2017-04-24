@@ -235,11 +235,11 @@ def InceptionV1(include_top=True,
         # 'Dropout_0b'
         x = Dropout(0.2)(x)  # slim has keep_prob (@0.8), keras uses drop_fraction
         
-        #logits = conv2d_bn(x,  classes+1, 1, 1, strides=(1, 1), padding='valid', name='Logits',
+        #logits = conv2d_bn(x,  classes, 1, 1, strides=(1, 1), padding='valid', name='Logits',
         #                   normalizer=False, activation=None, )  
         
         # Write out the logits explictly, since it is pretty different
-        x = Conv2D(classes+1, (1, 1), strides=(1,1), padding='valid', use_bias=True, name='Logits')(x)
+        x = Conv2D(classes, (1, 1), strides=(1,1), padding='valid', use_bias=True, name='Logits')(x)
         
         x = Flatten(name='Logits_flat')(x)
         #x = x[:, 1:]  # ??Shift up so that first class ('blank background') vanishes
@@ -314,6 +314,6 @@ if __name__ == '__main__':
     preds = model.predict(x)
     
     # Extra shift to remove 'background' as entry0
-    preds_1000 = preds[1:]
+    preds_1000 = preds[:, 1:]
     
     print('Predicted:', decode_predictions(preds_1000))
