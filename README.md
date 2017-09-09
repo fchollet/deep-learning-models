@@ -11,6 +11,7 @@ This repository contains code for the following Keras models:
 - VGG16
 - VGG19
 - ResNet50
+- Inception v1 (GoogLeNet)
 - Inception v3
 - CRNN for music tagging
 
@@ -83,6 +84,8 @@ block4_pool_features = model.predict(x)
 - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) - please cite this paper if you use the VGG models in your work.
 - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) - please cite this paper if you use the ResNet model in your work.
 - [Rethinking the Inception Architecture for Computer Vision](http://arxiv.org/abs/1512.00567) - please cite this paper if you use the Inception v3 model in your work.
+- [Going deeper with convolutions](http://arxiv.org/abs/1409.4842v1) - please cite this paper if you use the Inception v1 model in your work.
+
 - [Music-auto_tagging-keras](https://github.com/keunwoochoi/music-auto_tagging-keras)
 
 Additionally, don't forget to [cite Keras](https://keras.io/getting-started/faq/#how-should-i-cite-keras) if you use these models.
@@ -93,4 +96,5 @@ Additionally, don't forget to [cite Keras](https://keras.io/getting-started/faq/
 - All code in this repository is under the MIT license as specified by the LICENSE file.
 - The ResNet50 weights are ported from the ones [released by Kaiming He](https://github.com/KaimingHe/deep-residual-networks) under the [MIT license](https://github.com/KaimingHe/deep-residual-networks/blob/master/LICENSE).
 - The VGG16 and VGG19 weights are ported from the ones [released by VGG at Oxford](http://www.robots.ox.ac.uk/~vgg/research/very_deep/) under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/4.0/).
+- The Inception v1 weights are derived from the weight files provided by Google for the TensorFlow-slim model zoo (which is Apache 2 licensed).
 - The Inception v3 weights are trained by ourselves and are released under the MIT license.
