@@ -1,4 +1,5 @@
 # Trained image classification models for Keras
+## useful for learning
 
 **THIS REPOSITORY IS DEPRECATED. USE THE MODULE `keras.applications` INSTEAD.**
 
